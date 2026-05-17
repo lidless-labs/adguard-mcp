@@ -1,4 +1,4 @@
-import { Type, Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import type { AdGuardClient } from "../adguard-client.ts";
 import type { ResolvedConfig } from "../config.ts";
 import { getInstanceConfig } from "../config.ts";
