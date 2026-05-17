@@ -14,11 +14,11 @@ describe("AdGuardClient", () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/status", status: 200, body: { version: "v0.107.50", protection_enabled: true } },
     ]);
-    const c = new AdGuardClient({ url: fake.baseUrl, username: "example-user", password: "hunter2" });
+    const c = new AdGuardClient({ url: fake.baseUrl, username: "admin", password: "hunter2" });
     const r = await c.get("/control/status");
     expect(r).toEqual({ version: "v0.107.50", protection_enabled: true });
     expect(fake.requests).toHaveLength(1);
-    expect(fake.requests[0].authHeader).toBe("Basic " + Buffer.from("example-user:hunter2").toString("base64"));
+    expect(fake.requests[0].authHeader).toBe("Basic " + Buffer.from("admin:hunter2").toString("base64"));
   });
 
   it("throws AdGuardClientError on 4xx", async () => {
@@ -52,13 +52,13 @@ describe("AdGuardClient", () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/status", status: 401, body: { message: "unauthorized" } },
     ]);
-    const c = new AdGuardClient({ url: fake.baseUrl, username: "example-user", password: "super-secret" });
+    const c = new AdGuardClient({ url: fake.baseUrl, username: "admin", password: "super-secret" });
     try {
       await c.get("/control/status");
     } catch (e) {
       const msg = (e as Error).message;
       expect(msg).not.toContain("super-secret");
-      expect(msg).not.toContain("example-user:super-secret");
+      expect(msg).not.toContain("admin:super-secret");
     }
   });
 });

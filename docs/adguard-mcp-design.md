@@ -6,9 +6,9 @@ Mirrors the published pattern of `solomonneas/postiz-mcp`, `solomonneas/jellyfin
 
 ## Problem
 
-AdGuard Home runs on the home network (192.0.2.60 / CT 100 and a second instance at 192.0.2.62). Day-to-day touchpoints are infrequent but repetitive: add a `@@||t.co^` allow exception when a service breaks, audit recent sinkholes after a job-site fails to load, block youtube on a specific client for an evening, subscribe a new filter list. Each of these requires the operator to open the AdGuard web UI on each instance, click through the same flows by hand, and remember to mirror the change across both boxes when the rule should apply everywhere.
+AdGuard Home runs on the home network (192.168.1.10 / CT 100 and a second instance at 192.168.1.11). Day-to-day touchpoints are infrequent but repetitive: add a `@@||t.co^` allow exception when a service breaks, audit recent sinkholes after a job-site fails to load, block youtube on a specific client for an evening, subscribe a new filter list. Each of these requires the operator to open the AdGuard web UI on each instance, click through the same flows by hand, and remember to mirror the change across both boxes when the rule should apply everywhere.
 
-There is no agent-driven surface today. Claude cannot answer "block youtube on Dani's laptop tonight" or "show me the most-blocked domains in the last 6 hours" without the operator copy-pasting from the UI. There is also no programmatic way to enforce a write-safety policy beyond user discipline: a single mis-click in the UI can disable filtering globally.
+There is no agent-driven surface today. Claude cannot answer "block youtube on the family laptop tonight" or "show me the most-blocked domains in the last 6 hours" without the operator copy-pasting from the UI. There is also no programmatic way to enforce a write-safety policy beyond user discipline: a single mis-click in the UI can disable filtering globally.
 
 ## Goal
 
@@ -92,11 +92,11 @@ export const tool = {
 `src/config.ts` reads env once at startup:
 
 ```
-ADGUARD_PRIMARY_URL=http://192.0.2.60
-ADGUARD_PRIMARY_USERNAME=example-user
+ADGUARD_PRIMARY_URL=http://192.168.1.10
+ADGUARD_PRIMARY_USERNAME=admin
 ADGUARD_PRIMARY_PASSWORD=<set in .env>
 
-ADGUARD_SECONDARY_URL=http://192.0.2.62        (optional)
+ADGUARD_SECONDARY_URL=http://192.168.1.11        (optional)
 ADGUARD_SECONDARY_USERNAME=<set in .env>
 ADGUARD_SECONDARY_PASSWORD=<set in .env>
 
@@ -184,7 +184,7 @@ Target: ~30-40 tests. All hermetic (no network). Fake-server capture pattern mat
 
 - npm publish under `solomonneas/adguard-mcp` (scoped name pending check; fall back to `adguard-mcp-solomonneas` if conflicting).
 - ClawHub publish via `npx clawhub package publish` per `[[clawhub-cli-publish-flow]]`.
-- Auto-redeploy cron extends `~/bin/repo-redeploy.sh` per `[[repo-redeploy-system]]` so commits go live on automation-host + windows-host within 10 minutes.
+- Auto-redeploy cron extends `~/bin/repo-redeploy.sh` per `[[repo-redeploy-system]]` so commits go live across both target machines within 10 minutes.
 - Pre-publish: `pnpm e2e:local` (or `npm test`) passes, `npm run build` produces clean dist, semver bumped.
 
 ## Setup for the user (operator-owned)
@@ -233,4 +233,4 @@ Operator follow-up after merge:
 - Build-but-don't-flip preference: `[[feedback-build-but-dont-flip-preference]]`.
 - AdGuard t.co allowlist (real-world write example): `[[adguard-tco-allowlist-2026-04-16]]`.
 - AdGuard sinkhole audit context: `[[adguard-sinkhole-job-hunt-allowlist]]`.
-- proxmox-host CT 100 placement: `[[infrastructure-proxmox]]`, `[[proxmox-host-proxmox-home]]`.
+- Home-LAN AdGuard placement: `[[infrastructure-proxmox]]`, `[[home-proxmox]]`.

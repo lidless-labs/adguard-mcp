@@ -156,14 +156,14 @@ import { resolveInstances, getInstanceConfig, UnknownInstanceError, NoInstancesE
 describe("resolveInstances", () => {
   it("parses a single primary instance", () => {
     const env = {
-      ADGUARD_PRIMARY_URL: "http://192.0.2.60",
-      ADGUARD_PRIMARY_USERNAME: "example-user",
+      ADGUARD_PRIMARY_URL: "http://192.168.1.10",
+      ADGUARD_PRIMARY_USERNAME: "admin",
       ADGUARD_PRIMARY_PASSWORD: "secret",
     };
     const cfg = resolveInstances(env);
     expect(cfg.instances.primary).toEqual({
-      url: "http://192.0.2.60",
-      username: "example-user",
+      url: "http://192.168.1.10",
+      username: "admin",
       password: "secret",
     });
     expect(cfg.defaultInstance).toBe("primary");
@@ -171,10 +171,10 @@ describe("resolveInstances", () => {
 
   it("parses multiple instances", () => {
     const env = {
-      ADGUARD_PRIMARY_URL: "http://192.0.2.60",
+      ADGUARD_PRIMARY_URL: "http://192.168.1.10",
       ADGUARD_PRIMARY_USERNAME: "u1",
       ADGUARD_PRIMARY_PASSWORD: "p1",
-      ADGUARD_SECONDARY_URL: "http://192.0.2.62",
+      ADGUARD_SECONDARY_URL: "http://192.168.1.11",
       ADGUARD_SECONDARY_USERNAME: "u2",
       ADGUARD_SECONDARY_PASSWORD: "p2",
     };
@@ -421,11 +421,11 @@ describe("AdGuardClient", () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/status", status: 200, body: { version: "v0.107.50", protection_enabled: true } },
     ]);
-    const c = new AdGuardClient({ url: fake.baseUrl, username: "example-user", password: "hunter2" });
+    const c = new AdGuardClient({ url: fake.baseUrl, username: "admin", password: "hunter2" });
     const r = await c.get("/control/status");
     expect(r).toEqual({ version: "v0.107.50", protection_enabled: true });
     expect(fake.requests).toHaveLength(1);
-    expect(fake.requests[0].authHeader).toBe("Basic " + Buffer.from("example-user:hunter2").toString("base64"));
+    expect(fake.requests[0].authHeader).toBe("Basic " + Buffer.from("admin:hunter2").toString("base64"));
   });
 
   it("throws AdGuardClientError on 4xx", async () => {
@@ -459,13 +459,13 @@ describe("AdGuardClient", () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/status", status: 401, body: { message: "unauthorized" } },
     ]);
-    const c = new AdGuardClient({ url: fake.baseUrl, username: "example-user", password: "super-secret" });
+    const c = new AdGuardClient({ url: fake.baseUrl, username: "admin", password: "super-secret" });
     try {
       await c.get("/control/status");
     } catch (e) {
       const msg = (e as Error).message;
       expect(msg).not.toContain("super-secret");
-      expect(msg).not.toContain("example-user:super-secret");
+      expect(msg).not.toContain("admin:super-secret");
     }
   });
 });
@@ -1088,7 +1088,7 @@ describe("adguard_list_clients", () => {
   it("returns the clients payload", async () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/clients", status: 200,
-        body: { clients: [{ name: "client-laptop", ids: ["192.0.2.55"], blocked_services: ["youtube"] }] } },
+        body: { clients: [{ name: "family-laptop", ids: ["192.168.1.55"], blocked_services: ["youtube"] }] } },
     ]);
     const tool = createAdguardListClientsTool(() => new AdGuardClient({ url: fake!.baseUrl, username: "u", password: "p" }));
     const r = await tool.execute("id", {});
@@ -1578,23 +1578,23 @@ afterEach(async () => { if (fake) await fake.close(); fake = null; });
 describe("adguard_set_client_blocked_services", () => {
   it("refuses without confirm", async () => {
     const tool = createAdguardSetClientBlockedServicesTool(() => new AdGuardClient({ url: "http://x", username: "u", password: "p" }));
-    await expect(tool.execute("id", { name: "client-laptop", services: ["youtube"] })).rejects.toThrow(WriteGateError);
+    await expect(tool.execute("id", { name: "family-laptop", services: ["youtube"] })).rejects.toThrow(WriteGateError);
   });
 
   it("looks up client by name and updates blocked services", async () => {
     fake = await startFakeAdGuard([
       { method: "GET", path: "/control/clients", status: 200,
-        body: { clients: [{ name: "client-laptop", ids: ["192.0.2.55"], blocked_services: [] }] } },
+        body: { clients: [{ name: "family-laptop", ids: ["192.168.1.55"], blocked_services: [] }] } },
       { method: "POST", path: "/control/clients/update", status: 200, body: {} },
     ]);
     const tool = createAdguardSetClientBlockedServicesTool(() => new AdGuardClient({ url: fake!.baseUrl, username: "u", password: "p" }));
-    const r = await tool.execute("id", { name: "client-laptop", services: ["youtube", "tiktok"], confirm: true });
+    const r = await tool.execute("id", { name: "family-laptop", services: ["youtube", "tiktok"], confirm: true });
     const payload = JSON.parse(r.content[0].text);
-    expect(payload.client).toBe("client-laptop");
+    expect(payload.client).toBe("family-laptop");
     expect(payload.blocked_services).toEqual(["youtube", "tiktok"]);
     const post = fake.requests.find((q) => q.method === "POST")!;
     const body = JSON.parse(post.body);
-    expect(body.name).toBe("client-laptop");
+    expect(body.name).toBe("family-laptop");
     expect(body.data.blocked_services).toEqual(["youtube", "tiktok"]);
   });
 

@@ -4,14 +4,14 @@ import { resolveInstances, getInstanceConfig, UnknownInstanceError, NoInstancesE
 describe("resolveInstances", () => {
   it("parses a single primary instance", () => {
     const env = {
-      ADGUARD_PRIMARY_URL: "http://192.0.2.60",
-      ADGUARD_PRIMARY_USERNAME: "example-user",
+      ADGUARD_PRIMARY_URL: "http://192.168.1.10",
+      ADGUARD_PRIMARY_USERNAME: "admin",
       ADGUARD_PRIMARY_PASSWORD: "secret",
     };
     const cfg = resolveInstances(env);
     expect(cfg.instances.primary).toEqual({
-      url: "http://192.0.2.60",
-      username: "example-user",
+      url: "http://192.168.1.10",
+      username: "admin",
       password: "secret",
     });
     expect(cfg.defaultInstance).toBe("primary");
@@ -19,10 +19,10 @@ describe("resolveInstances", () => {
 
   it("parses multiple instances", () => {
     const env = {
-      ADGUARD_PRIMARY_URL: "http://192.0.2.60",
+      ADGUARD_PRIMARY_URL: "http://192.168.1.10",
       ADGUARD_PRIMARY_USERNAME: "u1",
       ADGUARD_PRIMARY_PASSWORD: "p1",
-      ADGUARD_SECONDARY_URL: "http://192.0.2.62",
+      ADGUARD_SECONDARY_URL: "http://192.168.1.11",
       ADGUARD_SECONDARY_USERNAME: "u2",
       ADGUARD_SECONDARY_PASSWORD: "p2",
     };
