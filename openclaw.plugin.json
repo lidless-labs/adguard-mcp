@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "adguard",
+  "name": "AdGuard",
+  "version": "0.1.0",
+  "description": "AdGuard Home read/write tools across one or more instances.",
+  "entry": "./dist/index.js",
+  "activation": { "onStartup": true },
+  "compat": { "openclaw": ">=2026.4.22" },
+  "permissions": [],
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}
