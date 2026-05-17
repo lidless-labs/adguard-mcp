@@ -9,7 +9,8 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "lib": ["ES2022"]
+    "lib": ["ES2022"],
+    "types": ["node"]
   },
   "include": ["index.ts", "mcp-server.ts", "src/**/*.ts", "tests/**/*.ts"]
 }
