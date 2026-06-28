@@ -7,20 +7,44 @@ const Schema = Type.Object({
   limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500, description: "Max entries to return. Default 50." })),
   client: Type.Optional(Type.String({ description: "Filter by client IP or hostname. AGH's querylog supports a single free-text `search` parameter; client/domain are combined (space-joined) when both passed." })),
   domain: Type.Optional(Type.String({ description: "Filter by domain. AGH's querylog supports a single free-text `search` parameter; client/domain are combined (space-joined) when both passed." })),
-  blocked_only: Type.Optional(Type.Boolean({ description: "When true, only return blocked queries (AGH response_status=blocked)." })),
+  blocked_only: Type.Optional(Type.Boolean({ description: "When true, only return blocked queries using AGH's modern `reason` filter." })),
+  reasons: Type.Optional(Type.Array(Type.Union([
+    Type.Literal("NotFilteredNotFound"),
+    Type.Literal("NotFilteredWhiteList"),
+    Type.Literal("NotFilteredError"),
+    Type.Literal("FilteredBlackList"),
+    Type.Literal("FilteredSafeBrowsing"),
+    Type.Literal("FilteredParental"),
+    Type.Literal("FilteredInvalid"),
+    Type.Literal("FilteredSafeSearch"),
+    Type.Literal("FilteredBlockedService"),
+    Type.Literal("Rewrite"),
+    Type.Literal("RewriteEtcHosts"),
+    Type.Literal("RewriteRule"),
+  ]), { description: "Filter by one or more AGH FilteringReason values. Takes precedence over blocked_only." })),
 }, { additionalProperties: false });
+
+const BLOCKED_REASONS = [
+  "FilteredBlackList",
+  "FilteredSafeBrowsing",
+  "FilteredParental",
+  "FilteredInvalid",
+  "FilteredSafeSearch",
+  "FilteredBlockedService",
+];
 
 export function createAdguardQueryLogTool(getClient: ClientFactory) {
   return {
     name: "adguard_query_log",
     label: "adguard: query log",
-    description: "Read recent DNS queries via GET /control/querylog. Filter by client, domain, blocked-only. client + domain are combined into AGH's single `search` param when both passed.",
+    description: "Read recent DNS queries via GET /control/querylog. Filter by client, domain, blocked-only, or specific FilteringReason values. client + domain are combined into AGH's single `search` param when both passed.",
     parameters: Schema,
     execute: async (_id: string, raw: Record<string, unknown>) => {
-      const args = raw as { instance?: string; limit?: number; client?: string; domain?: string; blocked_only?: boolean };
+      const args = raw as { instance?: string; limit?: number; client?: string; domain?: string; blocked_only?: boolean; reasons?: string[] };
       const params = new URLSearchParams();
       params.set("limit", String(args.limit ?? 50));
-      if (args.blocked_only) params.set("response_status", "blocked");
+      const reasons = args.reasons && args.reasons.length > 0 ? args.reasons : args.blocked_only ? BLOCKED_REASONS : [];
+      for (const reason of reasons) params.append("reason", reason);
       const searchTerms: string[] = [];
       if (args.client) searchTerms.push(args.client);
       if (args.domain) searchTerms.push(args.domain);

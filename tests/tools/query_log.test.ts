@@ -10,11 +10,21 @@ afterEach(async () => { if (fake) await fake.close(); fake = null; });
 describe("adguard_query_log", () => {
   it("passes filter params as query string", async () => {
     fake = await startFakeAdGuard([
-      { method: "GET", path: "/control/querylog?limit=10&response_status=blocked", status: 200, body: { data: [] } },
+      { method: "GET", path: "/control/querylog?limit=10&reason=FilteredBlackList&reason=FilteredSafeBrowsing&reason=FilteredParental&reason=FilteredInvalid&reason=FilteredSafeSearch&reason=FilteredBlockedService", status: 200, body: { data: [] } },
     ]);
     const tool = createAdguardQueryLogTool(() => new AdGuardClient({ url: fake!.baseUrl, username: "u", password: "p" }));
     await tool.execute("id", { limit: 10, blocked_only: true });
-    expect(fake.requests[0].path).toBe("/control/querylog?limit=10&response_status=blocked");
+    expect(fake.requests[0].path).toBe("/control/querylog?limit=10&reason=FilteredBlackList&reason=FilteredSafeBrowsing&reason=FilteredParental&reason=FilteredInvalid&reason=FilteredSafeSearch&reason=FilteredBlockedService");
+    expect(fake.requests[0].path).not.toContain("response_status=");
+  });
+
+  it("passes explicit reason filters instead of blocked_only defaults", async () => {
+    fake = await startFakeAdGuard([
+      { method: "GET", path: "/control/querylog?limit=5&reason=Rewrite&reason=RewriteRule", status: 200, body: { data: [] } },
+    ]);
+    const tool = createAdguardQueryLogTool(() => new AdGuardClient({ url: fake!.baseUrl, username: "u", password: "p" }));
+    await tool.execute("id", { limit: 5, blocked_only: true, reasons: ["Rewrite", "RewriteRule"] });
+    expect(fake.requests[0].path).toBe("/control/querylog?limit=5&reason=Rewrite&reason=RewriteRule");
   });
 
   it("combines client and domain into AGH's single search param (space-joined)", async () => {

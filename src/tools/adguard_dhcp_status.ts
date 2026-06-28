@@ -4,17 +4,19 @@ import { InstanceArg, jsonToolResult } from "./_util.ts";
 
 const Schema = Type.Object({ instance: InstanceArg }, { additionalProperties: false });
 
-export function createAdguardListBlockedServicesCatalogTool(getClient: ClientFactory) {
+const NAME = "adguard_dhcp_status";
+
+export function createAdguardDhcpStatusTool(getClient: ClientFactory) {
   return {
-    name: "adguard_list_blocked_services_catalog",
-    label: "adguard: blocked services catalog",
-    description: "List the services AdGuard Home can block per-client (youtube, tiktok, instagram, etc) via GET /control/blocked_services/all.",
+    name: NAME,
+    label: "adguard: dhcp status",
+    description: "Get DHCP server settings, leases, and status via GET /control/dhcp/status.",
     parameters: Schema,
     execute: async (_id: string, raw: Record<string, unknown>) => {
       const args = raw as { instance?: string };
       const client = getClient(args.instance);
-      const catalog = await client.get("/control/blocked_services/all");
-      return jsonToolResult(catalog);
+      const status = await client.get("/control/dhcp/status");
+      return jsonToolResult(status);
     },
   };
 }

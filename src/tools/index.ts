@@ -26,6 +26,23 @@ import { createAdguardToggleSafebrowsingTool } from "./adguard_toggle_safebrowsi
 import { createAdguardDeleteClientTool } from "./adguard_delete_client.ts";
 import { createAdguardClearQueryLogTool } from "./adguard_clear_query_log.ts";
 import { createAdguardResetStatsTool } from "./adguard_reset_stats.ts";
+import { createAdguardListRewritesTool } from "./adguard_list_rewrites.ts";
+import { createAdguardAddRewriteTool } from "./adguard_add_rewrite.ts";
+import { createAdguardUpdateRewriteTool } from "./adguard_update_rewrite.ts";
+import { createAdguardDeleteRewriteTool } from "./adguard_delete_rewrite.ts";
+import { createAdguardGetRewriteSettingsTool } from "./adguard_get_rewrite_settings.ts";
+import { createAdguardToggleRewritesTool } from "./adguard_toggle_rewrites.ts";
+import { createAdguardGetAccessListTool } from "./adguard_get_access_list.ts";
+import { createAdguardSetAccessListTool } from "./adguard_set_access_list.ts";
+import { createAdguardGetQuerylogConfigTool } from "./adguard_get_querylog_config.ts";
+import { createAdguardUpdateQuerylogConfigTool } from "./adguard_update_querylog_config.ts";
+import { createAdguardGetStatsConfigTool } from "./adguard_get_stats_config.ts";
+import { createAdguardUpdateStatsConfigTool } from "./adguard_update_stats_config.ts";
+import { createAdguardDhcpStatusTool } from "./adguard_dhcp_status.ts";
+import { createAdguardDhcpInterfacesTool } from "./adguard_dhcp_interfaces.ts";
+import { createAdguardTlsStatusTool } from "./adguard_tls_status.ts";
+import { createAdguardValidateTlsConfigTool } from "./adguard_validate_tls_config.ts";
+import { createAdguardTestUpstreamDnsTool } from "./adguard_test_upstream_dns.ts";
 import { createAdguardSyncStatusTool } from "./adguard_sync_status.ts";
 import { createAdguardSyncHealthTool } from "./adguard_sync_health.ts";
 import { createAdguardSyncLogsTool } from "./adguard_sync_logs.ts";
@@ -62,6 +79,23 @@ export {
   createAdguardDeleteClientTool,
   createAdguardClearQueryLogTool,
   createAdguardResetStatsTool,
+  createAdguardListRewritesTool,
+  createAdguardAddRewriteTool,
+  createAdguardUpdateRewriteTool,
+  createAdguardDeleteRewriteTool,
+  createAdguardGetRewriteSettingsTool,
+  createAdguardToggleRewritesTool,
+  createAdguardGetAccessListTool,
+  createAdguardSetAccessListTool,
+  createAdguardGetQuerylogConfigTool,
+  createAdguardUpdateQuerylogConfigTool,
+  createAdguardGetStatsConfigTool,
+  createAdguardUpdateStatsConfigTool,
+  createAdguardDhcpStatusTool,
+  createAdguardDhcpInterfacesTool,
+  createAdguardTlsStatusTool,
+  createAdguardValidateTlsConfigTool,
+  createAdguardTestUpstreamDnsTool,
   createAdguardSyncStatusTool,
   createAdguardSyncHealthTool,
   createAdguardSyncLogsTool,
@@ -88,6 +122,14 @@ export function buildAllTools(getClient: ClientFactory, getSyncClient: SyncClien
     createAdguardGetBlockedServicesTool(getClient),
     createAdguardGetDnsConfigTool(getClient),
     createAdguardGetSafesearchSettingsTool(getClient),
+    createAdguardListRewritesTool(getClient),
+    createAdguardGetRewriteSettingsTool(getClient),
+    createAdguardGetAccessListTool(getClient),
+    createAdguardGetQuerylogConfigTool(getClient),
+    createAdguardGetStatsConfigTool(getClient),
+    createAdguardDhcpStatusTool(getClient),
+    createAdguardDhcpInterfacesTool(getClient),
+    createAdguardTlsStatusTool(getClient),
     createAdguardSyncStatusTool(getSyncClient),
     createAdguardSyncHealthTool(getSyncClient),
     createAdguardSyncLogsTool(getSyncClient),
@@ -104,6 +146,15 @@ export function buildAllTools(getClient: ClientFactory, getSyncClient: SyncClien
     createAdguardSetBlockedServicesTool(getClient),
     createAdguardToggleSafesearchTool(getClient),
     createAdguardToggleSafebrowsingTool(getClient),
+    createAdguardAddRewriteTool(getClient),
+    createAdguardUpdateRewriteTool(getClient),
+    createAdguardDeleteRewriteTool(getClient),
+    createAdguardToggleRewritesTool(getClient),
+    createAdguardSetAccessListTool(getClient),
+    createAdguardUpdateQuerylogConfigTool(getClient),
+    createAdguardUpdateStatsConfigTool(getClient),
+    createAdguardValidateTlsConfigTool(getClient),
+    createAdguardTestUpstreamDnsTool(getClient),
     createAdguardSyncRunTool(getSyncClient),
     // Tier 3: destructive (confirm: true + destructive: true)
     createAdguardReplaceUserRulesTool(getClient),
