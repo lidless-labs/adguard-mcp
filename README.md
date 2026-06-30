@@ -1,12 +1,12 @@
 <!-- content-guard: allow private-ipv4 file -->
 <p align="center">
-  <img src="docs/assets/adguard-mcp-banner.jpg" alt="adguard-mcp banner" width="900">
+  <img src="docs/assets/adguardctl-banner.jpg" alt="adguardctl banner" width="900">
 </p>
 
-<h1 align="center">adguard-mcp</h1>
+<h1 align="center">adguardctl</h1>
 
 <p align="center">
-  <strong>An MCP server that puts AdGuard Home DNS filtering in front of your AI client, with a three-tier write gate so the model can read freely but cannot disable protection or wipe your rules on a hallucinated call.</strong>
+  <strong>An operator control CLI for AdGuard Home, with an MCP adapter for assistant workflows and back-compatible launchers.</strong>
 </p>
 
 <p align="center">
@@ -19,11 +19,13 @@
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT license">
 </p>
 
-adguard-mcp is an MCP server for AdGuard Home, the self-hosted DNS sinkhole. It exists so you can inspect and tune network-wide DNS filtering from an AI assistant instead of clicking through a web dashboard across every box. What sets it apart from a raw HTTP wrapper is a three-tier write gate: reads are open, writes require an explicit `confirm: true`, and destructive operations additionally require `destructive: true`, so an agent cannot turn off filtering or overwrite the rules block by accident.
+`adguardctl` is an operator control CLI for AdGuard Home, the self-hosted DNS sinkhole. It gives shell, cron, CI, and assistant workflows one typed control surface for inspecting network-wide DNS filtering across one or more boxes. The npm package remains `@solomonneas/adguard-mcp` for compatibility and still ships the back-compatible `adguard-mcp` bin; new MCP launchers can start the adapter with `adguardctl mcp`.
 
 ## What it does
 
-adguard-mcp is an open-source MCP server for AdGuard Home that exposes DNS-filtering control to any Model Context Protocol client (Claude Desktop, Claude Code, Codex CLI, OpenClaw, Hermes). It speaks the AdGuard Home API across one or more instances, plus optional AdGuardHome Sync status and control, and surfaces 33 tools split into three gating tiers: 14 reads, 13 safe writes, and 6 destructive operations. Reads cover server status, stats, the DNS query log, filter lists, named clients, and a `check_host` lookup that shows exactly what AdGuard would do with a hostname. Writes manage user rules, filter-list subscriptions, per-client blocked services, SafeSearch, SafeBrowsing, and global protection, each behind the gate. It is built for homelab operators running one or several AdGuard Home boxes who want to query and adjust DNS filtering from an assistant without handing it an unguarded admin API.
+`adguardctl` speaks the AdGuard Home API across one or more instances, plus optional AdGuardHome Sync status and control. The direct CLI is read-only today, covering server status, stats, the DNS query log, filter lists, named clients, DNS rewrites, DNS and TLS config, DHCP status, and a `check-host` lookup that shows exactly what AdGuard would do with a hostname.
+
+For assistant clients, `adguardctl mcp` starts the stdio MCP adapter used by Claude Desktop, Claude Code, Codex CLI, OpenClaw, Hermes, and other Model Context Protocol clients. That adapter keeps the original `adguard-mcp` tool surface and safety model: reads are open, writes require an explicit `confirm: true`, and destructive operations additionally require `destructive: true`, so an agent cannot disable filtering or wipe rules on a hallucinated call.
 
 ## Quickstart
 
@@ -39,7 +41,7 @@ Or run via npx with no install:
 npx -y @solomonneas/adguard-mcp
 ```
 
-Then wire it into an MCP client. The minimal config for any client that speaks the standard `mcpServers` shape (Claude Desktop, Claude Code):
+Then use `adguardctl` from your shell, or wire the package into an MCP client. The minimal config for any client that speaks the standard `mcpServers` shape (Claude Desktop, Claude Code):
 
 ```json
 {
@@ -147,7 +149,7 @@ If neither Sync URL env var is set, Sync tools remain listed but return a clear 
 
 ## CLI
 
-The same package ships a read-only **control CLI**, `adguardctl`, for shells, cron, and CI. It shares the `AdGuardClient` / `AdGuardSyncClient` core with the MCP server and reads the same env config. It exposes only the Tier-1 read tools; writes stay in the MCP/plugin surface behind the tier gates.
+`adguardctl` is the package's primary operator entry point for shells, cron, and CI. It shares the `AdGuardClient` / `AdGuardSyncClient` core with the MCP adapter and reads the same env config. It exposes only the Tier-1 read tools; writes stay in the MCP/plugin surface behind the tier gates.
 
 ```bash
 npx @solomonneas/adguard-mcp@latest status
@@ -170,7 +172,7 @@ Run `adguardctl help` for the full command and flag list. `--instance <name>` ta
 
 ### Starting the MCP server
 
-`adguardctl mcp` (or the back-compat `adguard-mcp` bin) starts the stdio MCP server. If a launcher referenced the file path `dist/mcp-server.js` directly, it keeps working; new launchers can point at `dist/mcp-bin.js` (or `dist/cli.js mcp`). Launchers that use the `adguard-mcp` bin name need no change.
+`adguardctl mcp` (or the back-compat `adguard-mcp` bin) starts the stdio MCP adapter. If a launcher referenced the file path `dist/mcp-server.js` directly, it keeps working; new launchers can point at `dist/mcp-bin.js` (or `dist/cli.js mcp`). Launchers that use the `adguard-mcp` bin name need no change.
 
 ## Setup per client
 
@@ -243,14 +245,14 @@ ADGUARD_PRIMARY_PASSWORD = "your-password"
 
 ## Why not just give the agent the AdGuard Home API?
 
-- **The raw AdGuard Home API has no agent-safety layer.** Every endpoint is one call away, including the ones that disable all blocking or wipe your rules. adguard-mcp keeps reads open and gates writes behind `confirm: true` and destructive ops behind `destructive: true`, so a hallucinated tool call cannot silently break your network.
-- **`curl` or a generic HTTP MCP server** would mean the model hand-builds request bodies, handles Basic auth, and remembers which AdGuard quirk applies (the nested `{name, data}` client body, milliseconds-from-midnight schedules, the `PUT` vs `POST` split). adguard-mcp encodes those as typed tools with descriptions, so the model picks an intent, not an HTTP shape.
-- **A single-instance integration** does not match a real homelab. adguard-mcp resolves any number of instances from env vars by name and lets every tool target a non-default box with one `instance` arg, plus optional AdGuardHome Sync control alongside.
+- **The raw AdGuard Home API has no agent-safety layer.** Every endpoint is one call away, including the ones that disable all blocking or wipe your rules. The MCP adapter keeps reads open and gates writes behind `confirm: true` and destructive ops behind `destructive: true`, so a hallucinated tool call cannot silently break your network.
+- **`curl` or a generic HTTP MCP server** would mean the model hand-builds request bodies, handles Basic auth, and remembers which AdGuard quirk applies (the nested `{name, data}` client body, milliseconds-from-midnight schedules, the `PUT` vs `POST` split). `adguardctl` and its MCP adapter encode those as typed commands and tools, so the caller picks an intent, not an HTTP shape.
+- **A single-instance integration** does not match a real homelab. `adguardctl` resolves any number of instances from env vars by name and lets commands or MCP tools target a non-default box with one `instance` arg, plus optional AdGuardHome Sync control alongside.
 - **Clicking the web dashboard** works, but not from inside an assistant and not across several boxes at once. This is the same control surface, available to the agent you already have open.
 
-## What adguard-mcp is not
+## What adguardctl is not
 
-adguard-mcp is not a hosted service, a replacement for the AdGuard Home dashboard, or an autonomous network manager.
+`adguardctl` is not a hosted service, a replacement for the AdGuard Home dashboard, or an autonomous network manager.
 
 It does not:
 
